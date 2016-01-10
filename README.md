@@ -1,6 +1,6 @@
 # Tiphys
 
-Tiphys<sup>1</sup> is a Haskell library that extends
+Tiphys is a Haskell library that extends
 [aeson](https://github.com/bos/aeson) with navigating and editing
 facilities.
 
@@ -15,5 +15,3 @@ https://github.com/llhotka/tiphys
 
 For bug reports and feature requests, please use the
 [issue tracker](https://github.com/llhotka/tiphys/issues).
-
-1: Tiphys was the steersman and navigator on Jason's Argo.
