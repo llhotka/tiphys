@@ -25,19 +25,25 @@ module Data.Aeson.Zipper
     , anchor
     , value
     , getValue
-    -- * Motion primitives
+    -- * Functions for all locations
+    , replace
+    , up
+    , top
+    -- * Functions for object locations
     , child
+    -- * Functions for object member locations
+    , sibling
+    , addSibling
+    -- * Functions for array locations
     , entry
     , firstEntry
     , lastEntry
-    , sibling
-    , previous
+    -- * Functions for array entry locations
     , next
-    , up
-    , top
-    -- * Updates
-    , replace
-    , addSibling
+    , previous
+    , back
+    , forward
+    , jump
     , addBefore
     , addAfter
     ) where
@@ -57,15 +63,9 @@ import Data.Aeson.Zipper.Internal
 --
 -- Due to the heterogeneity of JSON data, the API is not as uniform as
 -- for "neat" data structures in that some operations are only
--- intended to work for certain 'Location' types. Specifically:
---
--- * 'child' only works at an object location (i.e. when the focused value is a JSON object),
---
--- * 'entry' only works at an array location,
---
--- * 'sibling' and 'addSibling' only work at an object member location,
---
--- * 'previous', 'next', 'addBefore' and 'addAfter' only work at an array entry location.
+-- intended to work for certain 'Location' types. In the following
+-- subsections, the functions are classified according to the context
+-- for which they are designed.
 --
 -- Typically, the motion and editing operations will be executed as
 -- actions in the 'Maybe' monad. Such an action may fail if

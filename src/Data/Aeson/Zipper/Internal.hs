@@ -19,19 +19,25 @@ module Data.Aeson.Zipper.Internal
     , anchor
     , value
     , getValue
-    -- * Motion primitives
+    -- * Functions for all locations
+    , replace
+    , up
+    , top
+    -- * Functions for object locations
     , child
+    -- * Functions for object member locations
     , sibling
+    , addSibling
+    -- * Functions for array locations
     , entry
     , firstEntry
     , lastEntry
+    -- * Functions for array entry locations
     , next
     , previous
-    , up
-    , top
-    -- * Updates
-    , replace
-    , addSibling
+    , back
+    , forward
+    , jump
     , addBefore
     , addAfter
     ) where
@@ -88,7 +94,7 @@ sibling _ _ = Nothing
 entry :: Int -> Location -> Maybe Location
 entry n (Loc (Array ary) ctx) = do
     e <- s V.!? 0
-    return $ Loc e $ Entry (V.toList p) (V.toList $ V.tail s) ctx
+    return $ Loc e $ Entry (reverse $ V.toList p) (V.toList $ V.tail s) ctx
   where
     (p,s) = V.splitAt n ary 
 entry _ _ = Nothing
@@ -105,21 +111,38 @@ lastEntry :: Location -> Maybe Location
 lastEntry (Loc (Array ary) ctx) =
     if V.null ary
     then Nothing
-    else Just $ Loc (V.last ary) $ Entry [] (V.toList $ V.init ary) ctx
+    else Just $ Loc (V.last ary) $
+         Entry (reverse $ V.toList $ V.init ary) [] ctx
 
--- | When at array entry location, move to the following entry.
+-- | When at array entry location, go to the following entry.
 next :: Location -> Maybe Location
 next (Loc v (Entry p s ctx)) = do
     (v',s') <- uncons s
     return $ Loc v' $ Entry (v:p) s' ctx
 next _ = Nothing
 
--- | When at array entry location, move to the preceding entry.
+-- | When at array entry location, go to the preceding entry.
 previous :: Location -> Maybe Location
 previous (Loc v (Entry p s ctx)) = do
     (v',p') <- uncons p
     return $ Loc v' $ Entry p' (v:s) ctx
 previous _ = Nothing
+
+-- | When at array entry location, go to the n-th preceding entry.
+back :: Int -> Location -> Maybe Location
+back 0 loc = return loc
+back n loc = previous loc >>= back (n-1)
+
+-- | When at array entry location, go to the n-th following entry.
+forward :: Int -> Location -> Maybe Location
+forward 0 loc = return loc
+forward n loc = next loc >>= forward (n-1)
+
+-- | When at array entry location, go to the n-th preceding or
+-- following entry depending on the sign of the first argument
+-- (negative = back).
+jump :: Int -> Location -> Maybe Location
+jump n = if n < 0 then back (-n) else forward n
 
 -- | Ascend to the parent location.
 up :: Location -> Maybe Location
