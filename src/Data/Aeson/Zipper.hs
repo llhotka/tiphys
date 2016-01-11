@@ -28,6 +28,8 @@ module Data.Aeson.Zipper
     -- * Motion primitives
     , child
     , entry
+    , firstEntry
+    , lastEntry
     , sibling
     , previous
     , next

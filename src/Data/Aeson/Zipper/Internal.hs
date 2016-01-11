@@ -23,6 +23,8 @@ module Data.Aeson.Zipper.Internal
     , child
     , sibling
     , entry
+    , firstEntry
+    , lastEntry
     , next
     , previous
     , up
@@ -65,7 +67,7 @@ value (Loc v _) = v
 getValue :: Maybe Location -> Value
 getValue = maybe Null value
 
--- | When at object location, descend to the child member with the
+-- | When at object location, go to the child member with the
 -- specified name.
 child :: Text -> Location -> Maybe Location
 child k (Loc (Object obj) ctx) = do
@@ -73,7 +75,7 @@ child k (Loc (Object obj) ctx) = do
     return $ Loc ch (Member k (H.delete k obj) ctx)
 child _ _ = Nothing
 
--- | When at object member location, move to the sibling member with
+-- | When at object member location, go to the sibling member with
 -- the specified name.
 sibling :: Text -> Location -> Maybe Location
 sibling k (Loc v (Member k' obj ctx)) = do
@@ -81,7 +83,7 @@ sibling k (Loc v (Member k' obj ctx)) = do
     return $ Loc s $ Member k (H.insert k' v $ H.delete k obj) ctx
 sibling _ _ = Nothing
 
--- | When at array location, descend to the entry with the specified
+-- | When at array location, go to the entry with the specified
 -- position.
 entry :: Int -> Location -> Maybe Location
 entry n (Loc (Array ary) ctx) = do
@@ -90,6 +92,20 @@ entry n (Loc (Array ary) ctx) = do
   where
     (p,s) = V.splitAt n ary 
 entry _ _ = Nothing
+
+-- | When at array location, go to the first entry.
+firstEntry :: Location -> Maybe Location
+firstEntry (Loc (Array ary) ctx) =
+    if V.null ary
+    then Nothing
+    else Just $ Loc (V.head ary) $ Entry [] (V.toList $ V.tail ary) ctx
+
+-- | When at array location, go to the last entry.
+lastEntry :: Location -> Maybe Location
+lastEntry (Loc (Array ary) ctx) =
+    if V.null ary
+    then Nothing
+    else Just $ Loc (V.last ary) $ Entry [] (V.toList $ V.init ary) ctx
 
 -- | When at array entry location, move to the following entry.
 next :: Location -> Maybe Location

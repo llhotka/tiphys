@@ -11,7 +11,11 @@ spec = do
     describe "motion" $ do
         it "up of top" $ getValue (tloc >>= up) `shouldBe` Null
         it "bar" $ getValue bar `shouldBe` Bool True
+        it "first entry of foo" $ getValue (bar >>= sibling "foo" >>= firstEntry)
+            `shouldBe` Number 1
         it "second entry of foo" $ getValue (bar >>= sibling "foo" >>= entry 1)
+            `shouldBe` Number 2
+        it "last entry of foo" $ getValue (bar >>= sibling "foo" >>= lastEntry)
             `shouldBe` Number 2
     describe "edits" $ do
         it "change value" $
